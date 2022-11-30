@@ -6,6 +6,7 @@ class Executor:
 
 
     def __init__(self, data_source = 'facedata', feautureExtractor=None):
+
         self.data_source = data_source
         self.prepareData()
 
@@ -14,7 +15,7 @@ class Executor:
 
         # read data files and convert to numpy arrays
         # return 3 raw data sets: train, validation, test
-        # images dim: 28 * 29; faces dim: 70 & 61
+        # images dim: 28 * 28; faces dim: 70 & 60
 
         if self.data_source == 'facedata':
             rows = 70
