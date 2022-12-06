@@ -5,15 +5,21 @@ from pprint import pprint
 class Executor:
 
 
-    def __init__(self, data_source = 'facedata', feautureExtractor=None, algorithm=None, metric = 'acc'):
+    def __init__(self, data_source = 'facedata', featureExtractor=None, algorithm=None, metric = 'acc'):
 
         self.data_source = data_source
-        self.prepareData()
-        self.metric = metric
-        if feautureExtractor:
-            self.feautureExtractor = feautureExtractor
+        
+        if metric in ['acc', 'err']:
+            self.metric = metric
+        else:
+            raise Exception("Invalid Metric")
+
+        self.featureExtractor = featureExtractor
+
         if algorithm:
             self.algorithm = algorithm
+        
+        self.prepareData()
         self.execute()
 
 
@@ -21,7 +27,7 @@ class Executor:
 
         # read data files and convert to numpy arrays
         # return 3 raw data sets: train, validation, test
-        # images dim: 28 * 28; faces dim: 70 & 60
+        # images dim: 28 * 28; faces dim: 70 * 60
 
         if self.data_source == 'facedata':
             rows = 70
@@ -50,16 +56,16 @@ class Executor:
                 else:
                     self.X_val = self.parseData(file_path, rows)
         
-        if self.feautureExtractor:
+        if self.featureExtractor:
             
-            self.X_train = self.feautureExtractor.extract(self.X_train)
-            self.X_val = self.feautureExtractor.extract(self.X_val)
-            self.X_test = self.feautureExtractor.extract(self.X_test)
+            self.X_train = self.featureExtractor.extract(self.X_train)
+            self.X_val = self.featureExtractor.extract(self.X_val)
+            self.X_test = self.featureExtractor.extract(self.X_test)
         
         # flatten data arrays for training
-        self.X_train = self.flatten(self.X_train)
-        self.X_val = self.flatten(self.X_val)
-        self.X_test = self.flatten(self.X_test)
+        self.X_train = Executor.flatten(self.X_train)
+        self.X_val = Executor.flatten(self.X_val)
+        self.X_test = Executor.flatten(self.X_test)
 
 
     def parseData(self, file_path, rows):
@@ -96,7 +102,7 @@ class Executor:
         if not self.algorithm:
             raise Exception("Learning Algorithm not provided")
 
-        no_imgs, img_rows, img_cols = self.X_train.shape
+        no_imgs, _ = self.X_train.shape
 
         self.train_mean_met = []
         self.train_std_met = []
@@ -117,13 +123,13 @@ class Executor:
             for i in range(5):
 
                 X = self.X_train[idx, :]
-                Y = self.Y_train[idx, :]
+                Y = self.Y_train[idx]
 
                 self.algorithm.fit(X, Y)
 
-                train_met.append(self.calculate_metric(self.algorithm, X, Y, self.metric))
-                val_met.append(self.calculate_metric(self.algorithm, self.X_val, self.Y_val, self.metric))
-                test_met.append(self.calculate_metric(self.algorithm, self.X_test, self.Y_test, self.metric))
+                train_met.append(Executor.calculate_metric(self.algorithm, X, Y, self.metric))
+                val_met.append(Executor.calculate_metric(self.algorithm, self.X_val, self.Y_val, self.metric))
+                test_met.append(Executor.calculate_metric(self.algorithm, self.X_test, self.Y_test, self.metric))
             
             self.train_mean_met.append(np.mean(train_met))
             self.train_std_met.append(np.std(train_met))
@@ -134,11 +140,21 @@ class Executor:
             self.test_mean_met.append(np.mean(test_met))
             self.test_std_met.append(np.std(test_met))
 
-    
-    def calculate_metric(algorithm, X, Y, metric = 'acc'):
-        pass
+
+    @staticmethod
+    def calculate_metric(algorithm, X, Y_true, metric = 'acc'):
+        
+        Y_pred = algorithm.predict(X)
+
+        acc = np.sum(Y_pred == Y_true)/len(Y_pred)
+
+        if metric == 'acc':
+            return acc
+        elif metric == 'err':
+            return 1 - acc
 
 
+    @staticmethod
     def flatten(X):
 
         # return flattened 2D matrix
