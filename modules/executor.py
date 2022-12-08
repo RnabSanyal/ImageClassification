@@ -15,9 +15,7 @@ class Executor:
             raise Exception("Invalid Metric")
 
         self.featureExtractor = featureExtractor
-
-        if algorithm:
-            self.algorithm = algorithm
+        self.algorithm = algorithm
         
         self.prepareData()
         self.execute()
@@ -120,16 +118,24 @@ class Executor:
             val_met = []
             test_met = []
 
-            for i in range(5):
+            print()
+
+            for _ in range(5):
 
                 X = self.X_train[idx, :]
                 Y = self.Y_train[idx]
+
+                print(f'X Shape: {X.shape}, Y Shape: {Y.shape}')
 
                 self.algorithm.fit(X, Y)
 
                 train_met.append(Executor.calculate_metric(self.algorithm, X, Y, self.metric))
                 val_met.append(Executor.calculate_metric(self.algorithm, self.X_val, self.Y_val, self.metric))
                 test_met.append(Executor.calculate_metric(self.algorithm, self.X_test, self.Y_test, self.metric))
+
+                # break loop if 100% data has been used
+                if i == 10:
+                    break
             
             self.train_mean_met.append(np.mean(train_met))
             self.train_std_met.append(np.std(train_met))
