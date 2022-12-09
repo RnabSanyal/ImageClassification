@@ -1,11 +1,12 @@
 import os
 import numpy as np
 from pprint import pprint
+from copy import copy
 
 class Executor:
 
 
-    def __init__(self, data_source = 'facedata', featureExtractor=None, algorithm=None, metric = 'acc'):
+    def __init__(self, data_source = 'facedata', featureExtractor=None, algorithm=None, metric = 'acc', quick = True):
 
         self.data_source = data_source
         
@@ -16,7 +17,8 @@ class Executor:
 
         self.featureExtractor = featureExtractor
         self.algorithm = algorithm
-        
+        self.quick = quick
+
         self.prepareData()
         self.execute()
 
@@ -111,19 +113,29 @@ class Executor:
 
         increment = int(no_imgs/10)
 
-        for i in range(1,11):
+        if self.quick:
+            iters = 1
+            start = 10
+        else:
+            start = 1
+            iters = 5
+
+        for i in range(start,11):
 
             idx = np.random.randint(0, no_imgs, size=(increment*i))
             train_met = []
             val_met = []
             test_met = []
 
-            print()
-
-            for _ in range(5):
+            for _ in range(iters):
+                
 
                 X = self.X_train[idx, :]
                 Y = self.Y_train[idx]
+
+                if i == 10:
+                    X = self.X_train
+                    Y = self.Y_train
 
                 print(f'X Shape: {X.shape}, Y Shape: {Y.shape}')
 
@@ -131,7 +143,7 @@ class Executor:
 
                 train_met.append(Executor.calculate_metric(self.algorithm, X, Y, self.metric))
                 val_met.append(Executor.calculate_metric(self.algorithm, self.X_val, self.Y_val, self.metric))
-                test_met.append(Executor.calculate_metric(self.algorithm, self.X_test, self.Y_test, self.metric))
+                test_met.append(Executor.calculate_metric(self. algorithm, self.X_test, self.Y_test, self.metric))
 
                 # break loop if 100% data has been used
                 if i == 10:
