@@ -123,6 +123,7 @@ class Executor:
             iter = 5
             start = 1
 
+        print("% Data | Partition | Acc-Avg | Acc-Std | Time-Avg | Time-Std")
 
         for i in range(start,11):
 
@@ -130,8 +131,6 @@ class Executor:
             val_met = []
             test_met = []
             time_met = []
-
-            print(f'======================\nTraining on {i*10}% data')
 
             for _ in range(iter):
                         
@@ -170,12 +169,12 @@ class Executor:
             self.time_mean.append(np.mean(time_met))
             self.time_std.append(np.std(time_met))
 
-            print("Statistics: ")
-            print(f"--Training Accuracy--\n Mean: {self.train_mean_met[-1] * 100}%, Std. Dev.: {self.train_std_met[-1]}")
-            print(f"--Validation Accuracy--\n Mean: {self.val_mean_met[-1] * 100}%, Std. Dev.: {self.val_std_met[-1]}")
-            print(f"--Testing Accuracy--\n Mean: {self.test_mean_met[-1] * 100}%, Std. Dev.: {self.test_std_met[-1]}")
-            print(f"--Time Taken to train--\n Mean: {self.time_mean[-1]} seconds, Std. Dev.: {self.time_std[-1]}")
-            print("\n")
+            print('{:5d}% |     Train |{:7.2f}% | {:7.4f} |{:8.2f}s |{:8.2f}s  '.\
+                format(i*10, self.train_mean_met[-1] * 100, self.train_std_met[-1], self.time_mean[-1], self.time_std[-1]))
+            print('       |       Val |{:7.2f}% | {:7.4f} |          |'.\
+                format(self.val_mean_met[-1] * 100, self.val_std_met[-1]))
+            print('       |      Test |{:7.2f}% | {:7.4f} |          |'.\
+                format(self.test_mean_met[-1] * 100, self.test_std_met[-1]))
 
 
 
