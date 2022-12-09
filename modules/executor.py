@@ -5,7 +5,7 @@ from pprint import pprint
 class Executor:
 
 
-    def __init__(self, data_source = 'facedata', featureExtractor=None, algorithm=None, metric = 'acc'):
+    def __init__(self, data_source = 'facedata', featureExtractor=None, algorithm=None, metric = 'acc', quick = True):
 
         self.data_source = data_source
         
@@ -16,6 +16,7 @@ class Executor:
 
         self.featureExtractor = featureExtractor
         self.algorithm = algorithm
+        self.quick = quick
         
         self.prepareData()
         self.execute()
@@ -110,17 +111,22 @@ class Executor:
         self.test_std_met = []
 
         increment = int(no_imgs/10)
+        
+        if self.quick:
+            iter = 1
+            start = 10
+        else:
+            iter = 5
+            start = 1
 
-        for i in range(1,11):
+        for i in range(start,11):
 
             idx = np.random.randint(0, no_imgs, size=(increment*i))
             train_met = []
             val_met = []
             test_met = []
 
-            print()
-
-            for _ in range(5):
+            for _ in range(iter):
 
                 X = self.X_train[idx, :]
                 Y = self.Y_train[idx]

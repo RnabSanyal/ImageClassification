@@ -1,39 +1,42 @@
-import util
-import os
 import numpy as np
 from pprint import pprint
 
 class Perceptron:
 
-    def __init__(self, legalLabels, max_iterations):
-        self.legalLabels = legalLabels
-        self.type = "perceptron"
+    def __init__(self, max_iterations):
         self.max_iterations = max_iterations
-        self.weights = {}
-        for label in legalLabels:
-            self.weights[label] = util.Counter()
 
-    def setWeights(self, weights):
-        assert len(weights) == len(self.legalLabels)
-        self.weights = weights
+    
+    def setWeights(self):
+        #print(self.all_labels, self.features)
+        self.weights = np.zeros((self.all_labels, self.features + 1)) # bias term
 
-    def train(self, trainingData, trainingLabels, validationData, validationLabels):
-        self.features = list(trainingData[0].keys())
+    
+    def fit(self, trainingData, trainingLabels):
 
+        self.all_labels = len(np.unique(trainingLabels))
+        examples, self.features = trainingData.shape
+        self.setWeights()
+        
+        # adding extra column for bias
+        trainingData = np.hstack([np.ones((examples, 1)), trainingData])
+        
         for iteration in range(self.max_iterations):
-            print ("Starting iteration ", iteration, "...")
 
-            for i in range(len(trainingData)):
-                predicted_label = self.classify(trainingData[i])[0]
-                if predicted_label != trainingLabels[i]: #if the predcited value isn't same as actual value
-                    self.weights[trainingLabels[i]] += trainingData[i]  # increase the weights of actual value
-                    self.weights[predicted_label] -= trainingData[i]  # decrease the weights of the predicted value
+            y_hat = np.argmax(np.matmul(self.weights, trainingData.T), axis=0)
 
-    def classify(self, data):
-        guesses = []
-        for info in data:
-            vectors = util.Counter()
-            for l in self.legalLabels:
-                vectors[l] = self.weights[l] * info
-            guesses.append(vectors.argMax())
-        return guesses
+            update = 0
+            for i in range(examples):
+                
+                if trainingLabels[i] != y_hat[i]:
+                    self.weights[trainingLabels[i]] += trainingData[i]
+                    self.weights[y_hat[i]] -= trainingData[i]
+                    update = 1
+            
+            if update == 0:
+                break
+    
+    def predict(self, X):
+
+        X = np.hstack([np.ones((X.shape[0], 1)), X])
+        return np.argmax(np.matmul(self.weights, X.T), axis=0)
