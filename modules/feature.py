@@ -34,7 +34,7 @@ class FeatureExtractor:
         grid_rows, grid_cols = self.grid_shape
 
         if img_rows % grid_rows or img_cols % grid_cols:
-            raise Exception("Grid size incompatible with image dimensions")
+            raise Exception(f"Grid size {grid_rows, grid_cols} incompatible with image dimensions {img_rows, img_cols}")
         
         # reshape x to run calculations on axes directly
         X_reshaped = \

@@ -2,6 +2,7 @@ import os
 import numpy as np
 from pprint import pprint
 from copy import copy
+from time import time
 
 class Executor:
 
@@ -18,7 +19,7 @@ class Executor:
         self.featureExtractor = featureExtractor
         self.algorithm = algorithm
         self.quick = quick
-
+        
         self.prepareData()
         self.execute()
 
@@ -110,26 +111,33 @@ class Executor:
         self.val_std_met = []
         self.test_mean_met = []
         self.test_std_met = []
+        self.time_mean = []
+        self.time_std = []
 
         increment = int(no_imgs/10)
-
+        
         if self.quick:
-            iters = 1
+            iter = 1
             start = 10
         else:
+            iter = 5
             start = 1
-            iters = 5
+
 
         for i in range(start,11):
 
-            idx = np.random.randint(0, no_imgs, size=(increment*i))
             train_met = []
             val_met = []
             test_met = []
+            time_met = []
 
-            for _ in range(iters):
-                
+            print(f'======================\nTraining on {i*10}% data')
 
+            for _ in range(iter):
+                        
+                algorithm = copy(self.algorithm)
+
+                idx = np.random.randint(0, no_imgs, size=(increment*i))
                 X = self.X_train[idx, :]
                 Y = self.Y_train[idx]
 
@@ -137,13 +145,14 @@ class Executor:
                     X = self.X_train
                     Y = self.Y_train
 
-                print(f'X Shape: {X.shape}, Y Shape: {Y.shape}')
+                tick = time()
+                algorithm.fit(X, Y)
+                tock = time()
 
-                self.algorithm.fit(X, Y)
-
-                train_met.append(Executor.calculate_metric(self.algorithm, X, Y, self.metric))
-                val_met.append(Executor.calculate_metric(self.algorithm, self.X_val, self.Y_val, self.metric))
-                test_met.append(Executor.calculate_metric(self. algorithm, self.X_test, self.Y_test, self.metric))
+                time_met.append(tock - tick)
+                train_met.append(Executor.calculate_metric(algorithm, X, Y, self.metric))
+                val_met.append(Executor.calculate_metric(algorithm, self.X_val, self.Y_val, self.metric))
+                test_met.append(Executor.calculate_metric(algorithm, self.X_test, self.Y_test, self.metric))
 
                 # break loop if 100% data has been used
                 if i == 10:
@@ -157,6 +166,18 @@ class Executor:
 
             self.test_mean_met.append(np.mean(test_met))
             self.test_std_met.append(np.std(test_met))
+
+            self.time_mean.append(np.mean(time_met))
+            self.time_std.append(np.std(time_met))
+
+            print("Statistics: ")
+            print(f"--Training Accuracy--\n Mean: {self.train_mean_met[-1] * 100}%, Std. Dev.: {self.train_std_met[-1]}")
+            print(f"--Validation Accuracy--\n Mean: {self.val_mean_met[-1] * 100}%, Std. Dev.: {self.val_std_met[-1]}")
+            print(f"--Testing Accuracy--\n Mean: {self.test_mean_met[-1] * 100}%, Std. Dev.: {self.test_std_met[-1]}")
+            print(f"--Time Taken to train--\n Mean: {self.time_mean[-1]} seconds, Std. Dev.: {self.time_std[-1]}")
+            print("\n")
+
+
 
 
     @staticmethod
