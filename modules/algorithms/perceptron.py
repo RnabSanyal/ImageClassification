@@ -3,6 +3,7 @@ from pprint import pprint
 
 class Perceptron:
 
+
     def __init__(self, max_iterations):
         self.max_iterations = max_iterations
 
@@ -35,6 +36,7 @@ class Perceptron:
             
             if update == 0:
                 break
+    
     
     def predict(self, X):
 
